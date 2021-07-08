@@ -54,12 +54,10 @@ public class PDFToExcelProcess {
 			
 			for (String key : groupTypeMap.keySet()) {
 				if(key.equalsIgnoreCase("MA")){
-					excelName="Equity.xlsx";
-					writeToExcel.writeExcel(excelFilePath+excelName,key + excelName, groupTypeMap.get(key));
+					writeToExcel.writeExcel(excelFilePath+key+".xlsx",key + excelName, groupTypeMap.get(key));
 				}
 				else if (key.equalsIgnoreCase("MB")){
-					excelName="Options.xlsx";
-					writeToExcel.writeExcel(excelFilePath+excelName,key + excelName, groupTypeMap.get(key));
+					writeToExcel.writeExcel(excelFilePath+key+".xlsx",key + excelName, groupTypeMap.get(key));
 				}
 				else{
 					System.out.println(key);
