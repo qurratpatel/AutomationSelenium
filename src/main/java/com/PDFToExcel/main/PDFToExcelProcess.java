@@ -31,8 +31,7 @@ public class PDFToExcelProcess {
 			String secondRow = rows.get(1);
 			String rlidTypeSubString = firstRow.substring(firstRow.indexOf("RLID:"), firstRow.indexOf("Sub")).trim();
 			//doubt
-			String subTypeSubstring = firstRow.substring(firstRow.indexOf("Sub ( "), firstRow.indexOf("\\s*-")).trim();
-			System.out.println(subTypeSubstring);
+			String subTypeSubstring = firstRow.substring(firstRow.indexOf("Sub ( "), firstRow.indexOf("C")).trim();
 			String[] rlidArray = rlidTypeSubString.split(":");
 			String rlidType = rlidArray[1].trim();
 		//	String[] subArray = subTypeSubstring.split // Doubt
