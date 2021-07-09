@@ -30,8 +30,7 @@ public class PDFToExcelProcess {
 			String firstRow = rows.get(0);
 			String secondRow = rows.get(1);
 			String rlidTypeSubString = firstRow.substring(firstRow.indexOf("RLID:"), firstRow.indexOf("Sub")).trim();
-			//doubt
-			String subTypeSubstring = firstRow.substring(firstRow.indexOf("Sub ( "), firstRow.indexOf("C")).trim();
+	
 			String[] rlidArray = rlidTypeSubString.split(":");
 			String rlidType = rlidArray[1].trim();
 		//	String[] subArray = subTypeSubstring.split // Doubt
@@ -44,14 +43,32 @@ public class PDFToExcelProcess {
 				date = matcher.group().replace("/" , "-");
 			}
 			excelName = rlidType + "_" + date;
-			
+//			rows.remove(3);
+			List<String> ls = new ArrayList<>();
+			//concatenate 2 lines
+			//issue, unable to read last line, need to check
+			for(int i=4; i<rows.size();i++){
+				if(rows.get(i).contains(rlidType)&&rows.get(i).contains("new")){
+					ls.add(rows.get(i));
+				}
+				else if (rows.get(i)==null||rows.get(i).contains("End")) {
+					rows.remove(i);
+				}
+				else {
+					ls.size();
+					ls.set(ls.size()-1, rows.get(i-1).concat(rows.get(i)));
+				}
+			}
+rows=ls;
+System.out.println(rows);
 			for (String row : rows) {
 				// splits the row into columns
 				columnsFromRow = Arrays.asList(row.split("\\s*,"));
 				int rowsize = columnsFromRow.size();
 
-				if (rowsize > 1) {// need to check
-					// Sorting data based on eventype
+			//	if (&&!row.contains("META")&&!row.contains("Date")&&!row.contains("End")&&!row.isEmpty()) {// need to check
+					if(rowsize>1&&!row.contains("META")&&!row.contains("Report")){
+				// Sorting data based on eventype
 					String eventTypeKey = columnsFromRow.get(2);
 					if (!eventTypeMap.containsKey(eventTypeKey)) {
 						List<List<String>> list = new ArrayList<>();
@@ -96,4 +113,7 @@ public class PDFToExcelProcess {
 			e.printStackTrace();
 		}
 	}
-}
+	
+	
+	}
+

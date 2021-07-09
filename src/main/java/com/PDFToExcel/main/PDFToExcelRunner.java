@@ -4,7 +4,7 @@ import com.aventstack.extentreports.ExtentTest;
 
 public class PDFToExcelRunner {
 
-	static String pdfFileName = System.getProperty("user.dir") + "/data/SampleDataNew.pdf";
+	static String pdfFileName = System.getProperty("user.dir") + "/data/SampleData2LineConcatenate.pdf";
 	static String excelFilePath = System.getProperty("user.dir") + "/src/main/resources/documents/";
 	public ExtentTest logger;
 

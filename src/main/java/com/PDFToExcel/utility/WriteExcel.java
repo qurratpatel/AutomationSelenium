@@ -61,14 +61,14 @@ public class WriteExcel {
 			headerList.add("D");
 			headerList.add("D");
 			break;
-		case "MACND":
+		case "MAND":
 			headerList.add("B");
 			headerList.add("B");
 			headerList.add("B");
 			headerList.add("B");
 			headerList.add("B");
 			break;
-		case "MBAL":
+		case "MANC":
 			headerList.add("C");
 			headerList.add("C");
 			headerList.add("C");
