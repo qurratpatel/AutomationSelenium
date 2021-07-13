@@ -32,7 +32,6 @@ public class ReadPDFData extends PDFTextStripper {
 			e.printStackTrace();
 			System.out.println(e.getMessage());
 		}
-		
 		finally {
 			if (document != null) {
 				document.close();

@@ -2,14 +2,11 @@ package com.PDFToExcel.main;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.PDFToExcel.utility.ReadPDFData;
 import com.PDFToExcel.utility.WriteExcel;
@@ -17,54 +14,63 @@ import com.PDFToExcel.utility.WriteExcel;
 public class PDFToExcelProcess {
 
 	List<String> columnsFromRow = new ArrayList<>();
-	Map<String, List<List<String>>> eventTypeMap = new HashMap<>();
-	Map<String, List<List<List<String>>>> groupTypeMap = new HashMap<>();
+	Map<String, List<List<String>>> eventTypeMap = new LinkedHashMap<>();
+	Map<String, List<List<List<String>>>> groupTypeMap = new LinkedHashMap<>();
 	WriteExcel writeToExcel = new WriteExcel();
 	String date;
 	String excelName;
 	String rlidType;
 	String subType;
+	String metaData;
+	String actualDateFormat;
 
 	public void pdfToExcel(String excelFilePath, String pdfFileName, String templateMA, String templateMB) {
 		List<String> rows = new ArrayList<>();
 		try {
 			// Reads the data from PDF
 			rows = ReadPDFData.readPDF(pdfFileName);
-			
+
 			// extract RLIDType, SubType and Date from row 1 and 2
 			String firstRow = rows.get(0);
 			String secondRow = rows.get(1);
-			//RLID type
-			String[] rlidTypeSubString = firstRow.substring(firstRow.indexOf("RLID:"), firstRow.indexOf("   ")).split(":");
-			 rlidType = rlidTypeSubString[1].trim();
-			
-			//Sub type
-			int indexOfSeparator = firstRow.lastIndexOf("–");
-			 subType =firstRow.substring(indexOfSeparator - 4, indexOfSeparator);
 
+			// Sub type
+			// int indexOfSeparator = firstRow.lastIndexOf("–");
+			int indexOfSeparator = firstRow.lastIndexOf("-");
+			subType = firstRow.substring(indexOfSeparator - 3, indexOfSeparator);
+
+			// RLID type
+			String[] rlidTypeSubString = firstRow.substring(firstRow.indexOf("RLID:"), firstRow.indexOf(subType))
+					.split(":");
+			rlidType = rlidTypeSubString[1].trim();
+			metaData = rows.get(2);
 
 			// Get date from row 2
 			Pattern pattern = Pattern.compile("\\d{2}/\\d{2}/\\d{2}");
 			Matcher matcher = pattern.matcher(secondRow);
 			if (matcher.find()) {
+				actualDateFormat = matcher.group();
 				date = matcher.group().replace("/", "-");
 			}
-			// Excel name using RLID type, sub type and date 
+			// Excel name using RLID type, sub type and date
 			excelName = rlidType + "_" + subType + "_" + date;
 			List<String> ls = new ArrayList<>();
-			
+
 			// concatenate 2 lines
 			for (int i = 4; i < rows.size(); i++) {
-				if (rows.get(i).contains(rlidType) && rows.get(i).contains("new")) {
+				if (rows.get(i).contains("NEW") || rows.get(i).contains("COR") || rows.get(i).contains("DEL")) {
 					ls.add(rows.get(i));
-				} else if (rows.get(i) == null || rows.get(i).contains("End")||rows.get(i).equals(" ")||rows.get(i).isEmpty()) {
-					rows.remove(i);
-				} else{
-					ls.size();
-					ls.set(ls.size() - 1, rows.get(i - 1).concat(rows.get(i)));
+				} 
+				else if (!(rows.get(i).contains("Report") || rows.get(i).contains(actualDateFormat)
+						|| rows.get(i) == null || rows.get(i).toLowerCase().contains("end") || rows.get(i).equals(" ")
+						|| rows.get(i).isEmpty())){
+						ls.set(ls.size() - 1, rows.get(i - 1).concat(rows.get(i)));
+					}
 				}
-			}
 			rows = ls;
+//			 for (String row: rows){
+//			 System.out.println(row);
+//			 }
 			for (String row : rows) {
 				// splits the row into columns
 				columnsFromRow = Arrays.asList(row.split("\\s*,"));
@@ -72,7 +78,7 @@ public class PDFToExcelProcess {
 
 				if (rowsize > 1 && !row.contains("META") && !row.contains("Report")) {
 					// Sorting data based on eventype
-					String eventTypeKey = columnsFromRow.get(2);
+					String eventTypeKey = columnsFromRow.get(3);
 					if (!eventTypeMap.containsKey(eventTypeKey)) {
 						List<List<String>> list = new ArrayList<>();
 						list.add(columnsFromRow);
@@ -96,10 +102,9 @@ public class PDFToExcelProcess {
 					groupTypeMap.get(groupTypekey).add(eventTypeMap.get(key));
 				}
 			}
-
 			for (String key : groupTypeMap.keySet()) {
 				writeToExcel.writeExcel(excelFilePath, excelName + "_" + key, groupTypeMap.get(key), templateMA,
-						templateMB);
+						templateMB, metaData);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
