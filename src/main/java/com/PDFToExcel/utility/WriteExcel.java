@@ -23,10 +23,11 @@ public class WriteExcel {
 		// check with 3.10 final
 		// Handle exception,
 		if (excelName.contains("MA")) {
-			cloneTemplate(templateMA, excelFilePath + excelName + ".xlsx");
+			CloneTemplates.createTemplate(templateMA, excelFilePath + excelName + ".xlsx");
 		} else if (excelName.contains("MB")) {
-			cloneTemplate(templateMB, excelFilePath + excelName + ".xlsx");
+			CloneTemplates.createTemplate(templateMB, excelFilePath + excelName + ".xlsx");
 		}
+		
 		FileInputStream inputStream = new FileInputStream(new File(excelFilePath + excelName + ".xlsx"));
 		Workbook workbook = WorkbookFactory.create(inputStream);
 		Sheet mataDataSheet = workbook.getSheetAt(0);
@@ -37,7 +38,50 @@ public class WriteExcel {
 			String eventType = list.get(i).get(0).get(3);
 			Sheet sheet = workbook.getSheet(eventType);
 			int rowCount = 1;
-			if (sheet != null) {
+			
+			
+			  // Creates single sheets
+//			if(sheet==null){
+//				Sheet newSheet = workbook.getSheet("EXTRADATA");
+//				if(newSheet==null){
+//						newSheet= workbook.createSheet("EXTRADATA");
+//				}
+//				for (List<String> rowdata : list.get(i)) {
+//				rowCount=	newSheet.getLastRowNum();
+//					Row row = newSheet.createRow(++rowCount);
+//					int columnCount = 0;
+//
+//					for (Object columnData : rowdata) {
+//						Cell cell = row.createCell(++columnCount);
+//						if (columnData instanceof String) {
+//							cell.setCellValue((String) columnData);
+//						} else if (columnData instanceof Integer) {
+//							cell.setCellValue((Integer) columnData);
+//						}
+//					}
+//			}
+//			}
+			
+			// creates new sheet based on the Eventype
+			if(sheet==null){
+				Sheet newSheet =workbook.createSheet(eventType+"_withoutHeader");
+				for (List<String> rowdata : list.get(i)) {
+				rowCount=	newSheet.getLastRowNum();
+					Row row = newSheet.createRow(++rowCount);
+					int columnCount = 0;
+
+					for (Object columnData : rowdata) {
+						Cell cell = row.createCell(++columnCount);
+						if (columnData instanceof String) {
+							cell.setCellValue((String) columnData);
+						} else if (columnData instanceof Integer) {
+							cell.setCellValue((Integer) columnData);
+						}
+					}
+			}
+			}
+			
+			else{
 				for (List<String> rowdata : list.get(i)) {
 					Row row = sheet.createRow(++rowCount);
 					int columnCount = 0;
@@ -57,21 +101,6 @@ public class WriteExcel {
 			workbook.write(outputStream);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
-		}
-	}
-
-	public void cloneTemplate(String templateName, String clonedFileName) throws InvalidFormatException, IOException {
-		Workbook wb = new XSSFWorkbook(OPCPackage.open(templateName));
-		for (int i = 0; i < wb.getNumberOfSheets(); i++) {
-			Sheet sheet = wb.getSheetAt(i);
-			Row row = sheet.getRow(1);
-			for (int j = 0; j < row.getLastCellNum() - 1; j++) {
-				Cell cell = row.getCell(j);
-				String data = cell.toString();
-			}
-			FileOutputStream fileout = new FileOutputStream(clonedFileName);
-			wb.write(fileout);
-			fileout.close();
 		}
 	}
 

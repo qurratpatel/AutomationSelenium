@@ -23,6 +23,7 @@ public class PDFToExcelProcess {
 	String subType;
 	String metaData;
 	String actualDateFormat;
+	String multipleLines = null; 
 
 	public void pdfToExcel(String excelFilePath, String pdfFileName, String templateMA, String templateMB) {
 		List<String> rows = new ArrayList<>();
@@ -56,21 +57,28 @@ public class PDFToExcelProcess {
 			excelName = rlidType + "_" + subType + "_" + date;
 			List<String> ls = new ArrayList<>();
 
-			// concatenate 2 lines
+			// concatenate multiple lines
 			for (int i = 4; i < rows.size(); i++) {
 				if (rows.get(i).contains("NEW") || rows.get(i).contains("COR") || rows.get(i).contains("DEL")) {
+					multipleLines = null; 
 					ls.add(rows.get(i));
-				} 
-				else if (!(rows.get(i).contains("Report") || rows.get(i).contains(actualDateFormat)
+				} else if (!(rows.get(i).contains("Report") || rows.get(i).contains(actualDateFormat)
 						|| rows.get(i) == null || rows.get(i).toLowerCase().contains("end") || rows.get(i).equals(" ")
-						|| rows.get(i).isEmpty())){
-						ls.set(ls.size() - 1, rows.get(i - 1).concat(rows.get(i)));
+						|| rows.get(i).isEmpty())) {
+					if (multipleLines != null) {
+						multipleLines = multipleLines.concat(rows.get(i)); 
+						ls.set(ls.size() - 1, multipleLines);
+					} else {
+						multipleLines = rows.get(i - 1).concat(rows.get(i)); // assign 2 concatenated lines to multipleLines 
+						ls.set(ls.size() - 1, multipleLines);
 					}
 				}
+			}
 			rows = ls;
 //			 for (String row: rows){
 //			 System.out.println(row);
 //			 }
+//			
 			for (String row : rows) {
 				// splits the row into columns
 				columnsFromRow = Arrays.asList(row.split("\\s*,"));
