@@ -1,14 +1,14 @@
 package com.PDFToExcel.main;
 
 
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;  
+//import org.apache.log4j.BasicConfigurator;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class PDFToExcelRunner {
 	
-	  private static final Logger logger = LogManager.getLogger(PDFToExcelRunner.class); 
-//	  String log4jConfPath = System.getProperty("user.dir")+"/src/main/resources/log4j/log4j.properties";
+//	  private static final Logger logger = LogManager.getLogger(PDFToExcelRunner.class); 
+	private static Logger log = LogManager.getLogger(PDFToExcelRunner.class);
 
 	// static String pdfFileName = System.getProperty("user.dir") +
 	// "/data/SampleData25Records.pdf";
@@ -20,8 +20,7 @@ public class PDFToExcelRunner {
 	static String templateMB = templatesPath + "MB_Template_2021.xlsx";
 
 	public static void main(String[] args) {
-		BasicConfigurator.configure();
-		logger.info("Inside PDF to excel runner");
+		log.info("Inside PDF to excel runner");
 		PDFToExcelProcess pdfToExcelProcess = new PDFToExcelProcess();
 		pdfToExcelProcess.pdfToExcel(excelFilePath, pdfFileName, templateMA, templateMB);
 	}

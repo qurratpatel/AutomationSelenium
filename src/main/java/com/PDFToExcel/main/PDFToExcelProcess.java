@@ -44,7 +44,8 @@ public class PDFToExcelProcess {
 			String[] rlidTypeSubString = firstRow.substring(firstRow.indexOf("RLID:"), firstRow.indexOf(subType))
 					.split(":");
 			rlidType = rlidTypeSubString[1].trim();
-			metaData = rows.get(2);
+			// Metadata
+			metaData = rows.get(2).concat(rows.get(3));
 
 			// Get date from row 2
 			Pattern pattern = Pattern.compile("\\d{2}/\\d{2}/\\d{2}");
