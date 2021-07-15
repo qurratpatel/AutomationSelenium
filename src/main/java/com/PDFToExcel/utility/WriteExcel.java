@@ -105,7 +105,6 @@ public class WriteExcel {
 							if (sheet.getRow(0).getCell(columnCount).toString().equals("R")
 									&& (columnData.toString().isEmpty() || columnData.toString().equalsIgnoreCase(" ")
 											|| columnData.toString() == null)) {
-
 								cellStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
 								cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 								
