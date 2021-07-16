@@ -24,8 +24,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class WriteExcel {
 
-	public void writeExcel(String excelFilePath, String excelName, List<List<List<String>>> list, String templateMA,
+	public int writeExcel(String excelFilePath, String excelName, List<List<List<String>>> list, String templateMA,
 			String templateMB, String metaData) throws FileNotFoundException, IOException, InvalidFormatException {
+		int totalRecords = 0;
 		// check with 3.10 final
 		// Handle exception,
 		if (excelName.contains("MA")) {
@@ -33,10 +34,10 @@ public class WriteExcel {
 		} else if (excelName.contains("MB")) {
 			CloneTemplates.createTemplate(templateMB, excelFilePath + excelName + ".xlsx");
 		}
-
 		FileInputStream inputStream = new FileInputStream(new File(excelFilePath + excelName + ".xlsx"));
 		Workbook workbook = WorkbookFactory.create(inputStream);
 		CellStyle cellStyle = workbook.createCellStyle();
+
 		Sheet mataDataSheet = workbook.getSheetAt(0);
 		Cell cellMeta = mataDataSheet.createRow(1).createCell(2);
 		cellMeta.setCellValue(metaData);
@@ -46,7 +47,7 @@ public class WriteExcel {
 			Sheet sheet = workbook.getSheet(eventType);
 			int rowCount = 1;
 
-			// Creates single sheets
+			// Creates single sheet
 			if (sheet == null) {
 				Sheet newSheet = workbook.getSheet("EXTRASHEET");
 				if (newSheet == null) {
@@ -68,27 +69,6 @@ public class WriteExcel {
 				}
 			}
 
-			// creates new sheet based on the Eventype
-			// if (sheet == null) {
-			// Sheet newSheet = workbook.createSheet(eventType +
-			// "_withoutHeader");
-			// for (List<String> rowdata : list.get(i)) {
-			// // rowCount=newSheet.getLastRowNum();
-			// Row row = newSheet.createRow(++rowCount);
-			// int columnCount = 0;
-			//
-			// for (Object columnData : rowdata) {
-			//
-			// Cell cell = row.createCell(++columnCount);
-			// if (columnData instanceof String) {
-			// cell.setCellValue((String) columnData);
-			// } else if (columnData instanceof Integer) {
-			// cell.setCellValue((Integer) columnData);
-			// }
-			// }
-			// }
-			// }
-
 			else {
 				for (List<String> rowdata : list.get(i)) {
 					Row row = sheet.createRow(++rowCount);
@@ -107,31 +87,45 @@ public class WriteExcel {
 											|| columnData.toString() == null)) {
 								cellStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
 								cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-								
-//								cellStyle.setBorderRight(BorderStyle.THIN);
-//								cellStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
-//								
-//								cellStyle.setBorderBottom(BorderStyle.THIN);
-//								cellStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
-//								
-//								cellStyle.setBorderLeft(BorderStyle.THIN);
-//								cellStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
-//								
-//								cellStyle.setBorderTop(BorderStyle.THIN);
-//								cellStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
-								
+
+								cellStyle.setBorderRight(BorderStyle.THIN);
+								cellStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
+
+								cellStyle.setBorderBottom(BorderStyle.THIN);
+								cellStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+
+								cellStyle.setBorderLeft(BorderStyle.THIN);
+								cellStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+
+								cellStyle.setBorderTop(BorderStyle.THIN);
+								cellStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
+
 								cell.setCellStyle(cellStyle);
 							}
 						}
 					}
 				}
 			}
+			try (FileOutputStream outputStream = new FileOutputStream(excelFilePath + excelName + ".xlsx")) {
+				workbook.write(outputStream);
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+			}
 		}
-		try (FileOutputStream outputStream = new FileOutputStream(excelFilePath + excelName + ".xlsx")) {
-			workbook.write(outputStream);
-		} catch (Exception e) {
-			System.out.println(e.getMessage());
+		for (int j = 1; j < workbook.getNumberOfSheets(); j++) {
+			Sheet sheet = workbook.getSheetAt(j);
+			{
+				if (sheet.getLastRowNum() > 1) {
+					int totalrows = 0;
+					if (sheet.getSheetName().equalsIgnoreCase("EXTRASHEET")) {
+						totalrows = sheet.getLastRowNum();
+					} else {
+						totalrows = sheet.getLastRowNum() - 1;
+					}
+					totalRecords = totalRecords + totalrows;
+				}
+			}
 		}
+		return totalRecords;
 	}
-
 }

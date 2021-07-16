@@ -8,11 +8,14 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.PDFToExcel.utility.ReadPDFData;
 import com.PDFToExcel.utility.WriteExcel;
 
 public class PDFToExcelProcess {
-
+	private static Logger log = LogManager.getLogger(PDFToExcelProcess.class);
 	List<String> columnsFromRow = new ArrayList<>();
 	Map<String, List<List<String>>> eventTypeMap = new LinkedHashMap<>();
 	Map<String, List<List<List<String>>>> groupTypeMap = new LinkedHashMap<>();
@@ -24,6 +27,8 @@ public class PDFToExcelProcess {
 	String metaData;
 	String actualDateFormat;
 	String multipleLines = null; 
+	int numOfRecordsInWb;
+	int totalNumOfRecordsInWbs;
 
 	public void pdfToExcel(String excelFilePath, String pdfFileName, String templateMA, String templateMB) {
 		List<String> rows = new ArrayList<>();
@@ -59,6 +64,8 @@ public class PDFToExcelProcess {
 			List<String> ls = new ArrayList<>();
 
 			// concatenate multiple lines
+			
+			
 			for (int i = 4; i < rows.size(); i++) {
 				if (rows.get(i).contains("NEW") || rows.get(i).contains("COR") || rows.get(i).contains("DEL")) {
 					multipleLines = null; 
@@ -112,9 +119,13 @@ public class PDFToExcelProcess {
 				}
 			}
 			for (String key : groupTypeMap.keySet()) {
-				writeToExcel.writeExcel(excelFilePath, excelName + "_" + key, groupTypeMap.get(key), templateMA,
+				numOfRecordsInWb =writeToExcel.writeExcel(excelFilePath, excelName + "_" + key, groupTypeMap.get(key), templateMA,
 						templateMB, metaData);
+				totalNumOfRecordsInWbs= totalNumOfRecordsInWbs+numOfRecordsInWb;
 			}
+			
+			log.info("Total number of records in pdf : " + rows.size());
+			log.info("Total number of records in excel : " + totalNumOfRecordsInWbs);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
