@@ -25,7 +25,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class WriteExcel {
 
 	public int writeExcel(String excelFilePath, String excelName, List<List<List<String>>> list, String templateMA,
-			String templateMB, String metaData) throws FileNotFoundException, IOException, InvalidFormatException {
+			String templateMB, List<String> metaDataList)
+			throws FileNotFoundException, IOException, InvalidFormatException {
 		int totalRecords = 0;
 		// check with 3.10 final
 		// Handle exception,
@@ -38,10 +39,16 @@ public class WriteExcel {
 		Workbook workbook = WorkbookFactory.create(inputStream);
 		CellStyle cellStyle = workbook.createCellStyle();
 
+		// Update Meta data values in MetaData sheet
 		Sheet mataDataSheet = workbook.getSheetAt(0);
-		Cell cellMeta = mataDataSheet.createRow(1).createCell(2);
-		cellMeta.setCellValue(metaData);
-
+		Row metaRow = mataDataSheet.createRow(2);
+		int columnCountMeta = 0;
+		for (String metaData : metaDataList) {
+			Cell cell = metaRow.createCell(columnCountMeta++);
+			if (metaData instanceof String) {
+				cell.setCellValue((String) metaData);
+			}
+		}
 		for (int i = 0; i < list.size(); i++) {
 			String eventType = list.get(i).get(0).get(3);
 			Sheet sheet = workbook.getSheet(eventType);
@@ -67,9 +74,7 @@ public class WriteExcel {
 						}
 					}
 				}
-			}
-
-			else {
+			} else {
 				for (List<String> rowdata : list.get(i)) {
 					Row row = sheet.createRow(++rowCount);
 					int columnCount = 0;
@@ -127,5 +132,9 @@ public class WriteExcel {
 			}
 		}
 		return totalRecords;
+	}
+
+	public void setCell() {
+
 	}
 }

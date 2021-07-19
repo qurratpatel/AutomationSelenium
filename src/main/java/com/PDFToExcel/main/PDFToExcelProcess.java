@@ -16,6 +16,7 @@ import com.PDFToExcel.utility.WriteExcel;
 
 public class PDFToExcelProcess {
 	private static Logger log = LogManager.getLogger(PDFToExcelProcess.class);
+	List<String> metaDatavalues = new ArrayList<>();
 	List<String> columnsFromRow = new ArrayList<>();
 	Map<String, List<List<String>>> eventTypeMap = new LinkedHashMap<>();
 	Map<String, List<List<List<String>>>> groupTypeMap = new LinkedHashMap<>();
@@ -24,11 +25,12 @@ public class PDFToExcelProcess {
 	String excelName;
 	String rlidType;
 	String subType;
-	String metaData;
+	String metaDataRow;
 	String actualDateFormat;
-	String multipleLines = null; 
+	String multipleLines = null;
 	int numOfRecordsInWb;
 	int totalNumOfRecordsInWbs;
+	String regex = "^0+(?!$)";
 
 	public void pdfToExcel(String excelFilePath, String pdfFileName, String templateMA, String templateMB) {
 		List<String> rows = new ArrayList<>();
@@ -49,8 +51,16 @@ public class PDFToExcelProcess {
 			String[] rlidTypeSubString = firstRow.substring(firstRow.indexOf("RLID:"), firstRow.indexOf(subType))
 					.split(":");
 			rlidType = rlidTypeSubString[1].trim();
+			
 			// Metadata
-			metaData = rows.get(2).concat(rows.get(3));
+			metaDataRow = rows.get(2).concat(rows.get(3));
+			metaDatavalues = Arrays.asList(metaDataRow.split("\\s*,"));
+			String data = metaDatavalues.get(7);
+			metaDatavalues.set(7, data.substring(0, data.indexOf("Detailed")));
+			metaDatavalues.set(8, data.substring(0, data.indexOf("@@")));
+			metaDatavalues.set(9, data.substring(data.indexOf("@") + 1, data.indexOf("@@")).replaceAll(regex, ""));
+			metaDatavalues.set(10, " ");
+			metaDatavalues.set(10, " ");
 
 			// Get date from row 2
 			Pattern pattern = Pattern.compile("\\d{2}/\\d{2}/\\d{2}");
@@ -64,29 +74,29 @@ public class PDFToExcelProcess {
 			List<String> ls = new ArrayList<>();
 
 			// concatenate multiple lines
-			
-			
+
 			for (int i = 4; i < rows.size(); i++) {
 				if (rows.get(i).contains("NEW") || rows.get(i).contains("COR") || rows.get(i).contains("DEL")) {
-					multipleLines = null; 
+					multipleLines = null;
 					ls.add(rows.get(i));
 				} else if (!(rows.get(i).contains("Report") || rows.get(i).contains(actualDateFormat)
 						|| rows.get(i) == null || rows.get(i).toLowerCase().contains("end") || rows.get(i).equals(" ")
 						|| rows.get(i).isEmpty())) {
 					if (multipleLines != null) {
-						multipleLines = multipleLines.concat(rows.get(i)); 
+						multipleLines = multipleLines.concat(rows.get(i));
 						ls.set(ls.size() - 1, multipleLines);
 					} else {
-						multipleLines = rows.get(i - 1).concat(rows.get(i)); // assign 2 concatenated lines to multipleLines 
+						multipleLines = rows.get(i - 1).concat(rows.get(i)); // assign
+																				// 2
+																				// concatenated
+																				// lines
+																				// to
+																				// multipleLines
 						ls.set(ls.size() - 1, multipleLines);
 					}
 				}
 			}
 			rows = ls;
-//			 for (String row: rows){
-//			 System.out.println(row);
-//			 }
-//			
 			for (String row : rows) {
 				// splits the row into columns
 				columnsFromRow = Arrays.asList(row.split("\\s*,"));
@@ -119,11 +129,11 @@ public class PDFToExcelProcess {
 				}
 			}
 			for (String key : groupTypeMap.keySet()) {
-				numOfRecordsInWb =writeToExcel.writeExcel(excelFilePath, excelName + "_" + key, groupTypeMap.get(key), templateMA,
-						templateMB, metaData);
-				totalNumOfRecordsInWbs= totalNumOfRecordsInWbs+numOfRecordsInWb;
+				numOfRecordsInWb = writeToExcel.writeExcel(excelFilePath, excelName + "_" + key, groupTypeMap.get(key),
+						templateMA, templateMB, metaDatavalues);
+				totalNumOfRecordsInWbs = totalNumOfRecordsInWbs + numOfRecordsInWb;
 			}
-			
+
 			log.info("Total number of records in pdf : " + rows.size());
 			log.info("Total number of records in excel : " + totalNumOfRecordsInWbs);
 		} catch (Exception e) {
