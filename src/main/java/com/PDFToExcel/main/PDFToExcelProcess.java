@@ -30,9 +30,11 @@ public class PDFToExcelProcess {
 	String multipleLines = null;
 	int numOfRecordsInWb;
 	int totalNumOfRecordsInWbs;
-	String regex = "^0+(?!$)";
+	String totalRecordsInPDF;
+	
 
 	public void pdfToExcel(String excelFilePath, String pdfFileName, String templateMA, String templateMB) {
+		
 		List<String> rows = new ArrayList<>();
 		try {
 			// Reads the data from PDF
@@ -54,14 +56,9 @@ public class PDFToExcelProcess {
 			
 			// Metadata
 			metaDataRow = rows.get(2).concat(rows.get(3));
-			metaDatavalues = Arrays.asList(metaDataRow.split("\\s*,"));
-			String data = metaDatavalues.get(7);
-			metaDatavalues.set(7, data.substring(0, data.indexOf("Detailed")));
-			metaDatavalues.set(8, data.substring(0, data.indexOf("@@")));
-			metaDatavalues.set(9, data.substring(data.indexOf("@") + 1, data.indexOf("@@")).replaceAll(regex, ""));
-			metaDatavalues.set(10, " ");
-			metaDatavalues.set(10, " ");
-
+			metaDatavalues =getMetaDataValues(metaDataRow);
+			totalRecordsInPDF=  metaDatavalues.get(8);
+			
 			// Get date from row 2
 			Pattern pattern = Pattern.compile("\\d{2}/\\d{2}/\\d{2}");
 			Matcher matcher = pattern.matcher(secondRow);
@@ -74,7 +71,6 @@ public class PDFToExcelProcess {
 			List<String> ls = new ArrayList<>();
 
 			// concatenate multiple lines
-
 			for (int i = 4; i < rows.size(); i++) {
 				if (rows.get(i).contains("NEW") || rows.get(i).contains("COR") || rows.get(i).contains("DEL")) {
 					multipleLines = null;
@@ -133,12 +129,25 @@ public class PDFToExcelProcess {
 						templateMA, templateMB, metaDatavalues);
 				totalNumOfRecordsInWbs = totalNumOfRecordsInWbs + numOfRecordsInWb;
 			}
-
-			log.info("Total number of records in pdf : " + rows.size());
+//			log.info("Total number of records in pdf : " + rows.size());
+			log.info("Total number of records in pdf meta row: " + totalRecordsInPDF);
 			log.info("Total number of records in excel : " + totalNumOfRecordsInWbs);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
+	public List<String> getMetaDataValues(String metaDataRow){
+		String regex = "^0+(?!$)";
+		List<String> metaDataArraysList = new ArrayList<>();
+		metaDataArraysList = Arrays.asList(metaDataRow.split("\\s*,"));
+		List<String> metaDatavalues = new ArrayList<>(metaDataArraysList);
+		String data = metaDatavalues.get(6);
+		metaDatavalues.set(6, data.substring(0,data.indexOf("**", data.indexOf("**") + 1)));
+		metaDatavalues.add(7, data.substring(0, data.indexOf("@")));
+		metaDatavalues.add(8, data.substring(data.indexOf("@") + 1, data.indexOf("@@")).replaceAll(regex, ""));
+		metaDatavalues.add(9, "");
+		metaDatavalues.add(10, (data.substring(data.indexOf("@**")+1, data.indexOf("**", data.indexOf("**") + 1))));
+		return metaDatavalues;
+	}
 }

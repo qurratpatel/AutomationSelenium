@@ -133,8 +133,4 @@ public class WriteExcel {
 		}
 		return totalRecords;
 	}
-
-	public void setCell() {
-
-	}
 }
