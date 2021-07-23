@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.LongToIntFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,11 +32,11 @@ public class PDFToExcelProcess {
 	int numOfRecordsInWb;
 	int totalNumOfRecordsInWbs;
 	String totalRecordsInPDF;
-	
 
 	public void pdfToExcel(String excelFilePath, String pdfFileName, String templateMA, String templateMB) {
-		
+
 		List<String> rows = new ArrayList<>();
+		List<String> ls = new ArrayList<>();
 		try {
 			// Reads the data from PDF
 			rows = ReadPDFData.readPDF(pdfFileName);
@@ -48,27 +49,25 @@ public class PDFToExcelProcess {
 			// int indexOfSeparator = firstRow.lastIndexOf("–");
 			int indexOfSeparator = firstRow.lastIndexOf("-");
 			subType = firstRow.substring(indexOfSeparator - 3, indexOfSeparator);
-
+			log.info("Sub type is: " + subType);
 			// RLID type
 			String[] rlidTypeSubString = firstRow.substring(firstRow.indexOf("RLID:"), firstRow.indexOf(subType))
 					.split(":");
 			rlidType = rlidTypeSubString[1].trim();
-			
+			log.info("RLID type is: " + rlidType);
+
 			// Metadata
 			metaDataRow = rows.get(2).concat(rows.get(3));
-			metaDatavalues =getMetaDataValues(metaDataRow);
-			totalRecordsInPDF=  metaDatavalues.get(8);
-			
+			metaDatavalues = getMetaDataValues(metaDataRow);
+			log.info("Values in Metadata row are :" + metaDatavalues);
+			totalRecordsInPDF = metaDatavalues.get(8);
+
 			// Get date from row 2
-			Pattern pattern = Pattern.compile("\\d{2}/\\d{2}/\\d{2}");
-			Matcher matcher = pattern.matcher(secondRow);
-			if (matcher.find()) {
-				actualDateFormat = matcher.group();
-				date = matcher.group().replace("/", "-");
-			}
+			date = getDate(secondRow);
+			log.info("Date is :" + date);
+
 			// Excel name using RLID type, sub type and date
 			excelName = rlidType + "_" + subType + "_" + date;
-			List<String> ls = new ArrayList<>();
 
 			// concatenate multiple lines
 			for (int i = 4; i < rows.size(); i++) {
@@ -93,6 +92,7 @@ public class PDFToExcelProcess {
 				}
 			}
 			rows = ls;
+
 			for (String row : rows) {
 				// splits the row into columns
 				columnsFromRow = Arrays.asList(row.split("\\s*,"));
@@ -129,25 +129,36 @@ public class PDFToExcelProcess {
 						templateMA, templateMB, metaDatavalues);
 				totalNumOfRecordsInWbs = totalNumOfRecordsInWbs + numOfRecordsInWb;
 			}
-//			log.info("Total number of records in pdf : " + rows.size());
+			// log.info("Total number of records in pdf : " + rows.size());
 			log.info("Total number of records in pdf meta row: " + totalRecordsInPDF);
 			log.info("Total number of records in excel : " + totalNumOfRecordsInWbs);
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	public List<String> getMetaDataValues(String metaDataRow){
+
+	public List<String> getMetaDataValues(String metaDataRow) {
 		String regex = "^0+(?!$)";
 		List<String> metaDataArraysList = new ArrayList<>();
 		metaDataArraysList = Arrays.asList(metaDataRow.split("\\s*,"));
 		List<String> metaDatavalues = new ArrayList<>(metaDataArraysList);
 		String data = metaDatavalues.get(6);
-		metaDatavalues.set(6, data.substring(0,data.indexOf("**", data.indexOf("**") + 1)));
+		metaDatavalues.set(6, data.substring(0, data.indexOf("**", data.indexOf("**") + 1)));
 		metaDatavalues.add(7, data.substring(0, data.indexOf("@")));
 		metaDatavalues.add(8, data.substring(data.indexOf("@") + 1, data.indexOf("@@")).replaceAll(regex, ""));
 		metaDatavalues.add(9, "");
-		metaDatavalues.add(10, (data.substring(data.indexOf("@**")+1, data.indexOf("**", data.indexOf("**") + 1))));
+		metaDatavalues.add(10, (data.substring(data.indexOf("@**") + 1, data.indexOf("**", data.indexOf("**") + 1))));
 		return metaDatavalues;
+	}
+
+	public String getDate(String secondRow) {
+		Pattern pattern = Pattern.compile("\\d{2}/\\d{2}/\\d{2}");
+		Matcher matcher = pattern.matcher(secondRow);
+		if (matcher.find()) {
+			actualDateFormat = matcher.group();
+			date = matcher.group().replace("/", "-");
+		}
+		return date;
 	}
 }

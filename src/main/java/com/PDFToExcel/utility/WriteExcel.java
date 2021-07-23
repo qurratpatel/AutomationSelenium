@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.BorderStyle;
@@ -22,7 +24,10 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import com.PDFToExcel.main.PDFToExcelProcess;
+
 public class WriteExcel {
+	private static Logger log = LogManager.getLogger(WriteExcel.class);
 
 	public int writeExcel(String excelFilePath, String excelName, List<List<List<String>>> list, String templateMA,
 			String templateMB, List<String> metaDataList)
@@ -32,8 +37,10 @@ public class WriteExcel {
 		// Handle exception,
 		if (excelName.contains("MA")) {
 			CloneTemplates.createTemplate(templateMA, excelFilePath + excelName + ".xlsx");
+			log.info("Template with name " + excelName + " is created");
 		} else if (excelName.contains("MB")) {
 			CloneTemplates.createTemplate(templateMB, excelFilePath + excelName + ".xlsx");
+			log.info("Template with name " + excelName + " is created");
 		}
 		FileInputStream inputStream = new FileInputStream(new File(excelFilePath + excelName + ".xlsx"));
 		Workbook workbook = WorkbookFactory.create(inputStream);
@@ -47,6 +54,9 @@ public class WriteExcel {
 			Cell cell = metaRow.createCell(columnCountMeta++);
 			if (metaData instanceof String) {
 				cell.setCellValue((String) metaData);
+				mataDataSheet.autoSizeColumn(cell.getColumnIndex());
+				workbook.setActiveSheet(0);
+				mataDataSheet.autoSizeColumn((short) 2);
 			}
 		}
 		for (int i = 0; i < list.size(); i++) {
@@ -67,6 +77,7 @@ public class WriteExcel {
 
 					for (Object columnData : rowdata) {
 						Cell cell = row.createCell(++columnCount);
+						newSheet.autoSizeColumn(cell.getColumnIndex());
 						if (columnData instanceof String) {
 							cell.setCellValue((String) columnData);
 						} else if (columnData instanceof Integer) {
@@ -78,9 +89,9 @@ public class WriteExcel {
 				for (List<String> rowdata : list.get(i)) {
 					Row row = sheet.createRow(++rowCount);
 					int columnCount = 0;
-
 					for (Object columnData : rowdata) {
 						Cell cell = row.createCell(++columnCount);
+						sheet.autoSizeColumn(cell.getColumnIndex());
 						if (columnData instanceof String) {
 							cell.setCellValue((String) columnData);
 						} else if (columnData instanceof Integer) {
@@ -111,14 +122,11 @@ public class WriteExcel {
 					}
 				}
 			}
-			try (FileOutputStream outputStream = new FileOutputStream(excelFilePath + excelName + ".xlsx")) {
-				workbook.write(outputStream);
-			} catch (Exception e) {
-				System.out.println(e.getMessage());
-			}
 		}
+
 		for (int j = 1; j < workbook.getNumberOfSheets(); j++) {
 			Sheet sheet = workbook.getSheetAt(j);
+			sheet.autoSizeColumn((short) 2);
 			{
 				if (sheet.getLastRowNum() > 1) {
 					int totalrows = 0;
@@ -128,9 +136,19 @@ public class WriteExcel {
 						totalrows = sheet.getLastRowNum() - 1;
 					}
 					totalRecords = totalRecords + totalrows;
+				} else {
+					workbook.setSheetHidden(workbook.getSheetIndex(sheet), true);
+					String sheetname = sheet.getSheetName();
+					log.info(sheetname + " is hidden? " + workbook.isSheetHidden(workbook.getSheetIndex(sheet)));
 				}
 			}
 		}
+		try (FileOutputStream outputStream = new FileOutputStream(excelFilePath + excelName + ".xlsx")) {
+			workbook.write(outputStream);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		log.info("Total records in " + excelName + " are " + totalRecords);
 		return totalRecords;
 	}
 }
