@@ -42,28 +42,14 @@ public class WriteExcel {
 			CloneTemplates.createTemplate(templateMB, excelFilePath + excelName + ".xlsx");
 			log.info("Template with name " + excelName + " is created");
 		}
+
 		FileInputStream inputStream = new FileInputStream(new File(excelFilePath + excelName + ".xlsx"));
 		Workbook workbook = WorkbookFactory.create(inputStream);
-		CellStyle cellStyle = workbook.createCellStyle();
 
-		// Update Meta data values in MetaData sheet
-		Sheet mataDataSheet = workbook.getSheetAt(0);
-		Row metaRow = mataDataSheet.createRow(2);
-		int columnCountMeta = 0;
-		for (String metaData : metaDataList) {
-			Cell cell = metaRow.createCell(columnCountMeta++);
-			if (metaData instanceof String) {
-				cell.setCellValue((String) metaData);
-				mataDataSheet.autoSizeColumn(cell.getColumnIndex());
-				workbook.setActiveSheet(0);
-				mataDataSheet.autoSizeColumn((short) 2);
-			}
-		}
 		for (int i = 0; i < list.size(); i++) {
 			String eventType = list.get(i).get(0).get(3);
 			Sheet sheet = workbook.getSheet(eventType);
 			int rowCount = 1;
-
 			// Creates single sheet
 			if (sheet == null) {
 				Sheet newSheet = workbook.getSheet("EXTRASHEET");
@@ -74,16 +60,7 @@ public class WriteExcel {
 					rowCount = newSheet.getLastRowNum();
 					Row row = newSheet.createRow(++rowCount);
 					int columnCount = 0;
-
-					for (Object columnData : rowdata) {
-						Cell cell = row.createCell(++columnCount);
-						newSheet.autoSizeColumn(cell.getColumnIndex());
-						if (columnData instanceof String) {
-							cell.setCellValue((String) columnData);
-						} else if (columnData instanceof Integer) {
-							cell.setCellValue((Integer) columnData);
-						}
-					}
+					writeData(workbook, rowdata, columnCount, row, newSheet);
 				}
 			} else {
 				for (List<String> rowdata : list.get(i)) {
@@ -101,32 +78,15 @@ public class WriteExcel {
 							if (sheet.getRow(0).getCell(columnCount).toString().equals("R")
 									&& (columnData.toString().isEmpty() || columnData.toString().equalsIgnoreCase(" ")
 											|| columnData.toString() == null)) {
-								cellStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
-								cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
-								cellStyle.setBorderRight(BorderStyle.THIN);
-								cellStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
-
-								cellStyle.setBorderBottom(BorderStyle.THIN);
-								cellStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
-
-								cellStyle.setBorderLeft(BorderStyle.THIN);
-								cellStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
-
-								cellStyle.setBorderTop(BorderStyle.THIN);
-								cellStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
-
-								cell.setCellStyle(cellStyle);
+								setCellStyle(workbook, cell);
 							}
 						}
 					}
 				}
 			}
 		}
-
 		for (int j = 1; j < workbook.getNumberOfSheets(); j++) {
 			Sheet sheet = workbook.getSheetAt(j);
-			sheet.autoSizeColumn((short) 2);
 			{
 				if (sheet.getLastRowNum() > 1) {
 					int totalrows = 0;
@@ -136,6 +96,7 @@ public class WriteExcel {
 						totalrows = sheet.getLastRowNum() - 1;
 					}
 					totalRecords = totalRecords + totalrows;
+
 				} else {
 					workbook.setSheetHidden(workbook.getSheetIndex(sheet), true);
 					String sheetname = sheet.getSheetName();
@@ -143,6 +104,9 @@ public class WriteExcel {
 				}
 			}
 		}
+		metaDataList.set(11, Integer.toString(totalRecords));
+		// Update Meta data values in MetaData sheet
+		updateMetaDataSheet(workbook, metaDataList);
 		try (FileOutputStream outputStream = new FileOutputStream(excelFilePath + excelName + ".xlsx")) {
 			workbook.write(outputStream);
 		} catch (Exception e) {
@@ -150,5 +114,45 @@ public class WriteExcel {
 		}
 		log.info("Total records in " + excelName + " are " + totalRecords);
 		return totalRecords;
+	}
+
+	public void updateMetaDataSheet(Workbook workbook, List<String> metaDataList) {
+		Sheet sheet = workbook.getSheetAt(0);
+		Row row = sheet.createRow(2);
+		int columnCount = 0;
+		writeData(workbook, metaDataList, columnCount, row, sheet);
+	}
+
+	public void writeData(Workbook workbook, List<String> data, int columnCount, Row row, Sheet sheet) {
+		for (Object cellData : data) {
+			Cell cell = row.createCell(columnCount++);
+			if (cellData instanceof String) {
+				cell.setCellValue((String) cellData);
+			} else if (cellData instanceof Integer) {
+				cell.setCellValue((Integer) cellData);
+			}
+			sheet.autoSizeColumn(cell.getColumnIndex());
+			workbook.setActiveSheet(0);
+		}
+	}
+
+	public void setCellStyle(Workbook workbook, Cell cell) {
+		CellStyle cellStyle = workbook.createCellStyle();
+		cellStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+		cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+		cellStyle.setBorderRight(BorderStyle.THIN);
+		cellStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
+
+		cellStyle.setBorderBottom(BorderStyle.THIN);
+		cellStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+
+		cellStyle.setBorderLeft(BorderStyle.THIN);
+		cellStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+
+		cellStyle.setBorderTop(BorderStyle.THIN);
+		cellStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
+
+		cell.setCellStyle(cellStyle);
 	}
 }

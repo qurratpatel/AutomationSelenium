@@ -32,9 +32,7 @@ public class PDFToExcelProcess {
 	int numOfRecordsInWb;
 	int totalNumOfRecordsInWbs;
 	String totalRecordsInPDF;
-
 	public void pdfToExcel(String excelFilePath, String pdfFileName, String templateMA, String templateMB) {
-
 		List<String> rows = new ArrayList<>();
 		List<String> ls = new ArrayList<>();
 		try {
@@ -92,12 +90,10 @@ public class PDFToExcelProcess {
 				}
 			}
 			rows = ls;
-
 			for (String row : rows) {
 				// splits the row into columns
 				columnsFromRow = Arrays.asList(row.split("\\s*,"));
 				int rowsize = columnsFromRow.size();
-
 				if (rowsize > 1 && !row.contains("META") && !row.contains("Report")) {
 					// Sorting data based on eventype
 					String eventTypeKey = columnsFromRow.get(3);
@@ -132,26 +128,24 @@ public class PDFToExcelProcess {
 			// log.info("Total number of records in pdf : " + rows.size());
 			log.info("Total number of records in pdf meta row: " + totalRecordsInPDF);
 			log.info("Total number of records in excel : " + totalNumOfRecordsInWbs);
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
 	public List<String> getMetaDataValues(String metaDataRow) {
 		String regex = "^0+(?!$)";
 		List<String> metaDataArraysList = new ArrayList<>();
 		metaDataArraysList = Arrays.asList(metaDataRow.split("\\s*,"));
-		List<String> metaDatavalues = new ArrayList<>(metaDataArraysList);
+		List<String> metaDatavalues = new ArrayList<>(metaDataArraysList); 
 		String data = metaDatavalues.get(6);
 		metaDatavalues.set(6, data.substring(0, data.indexOf("**", data.indexOf("**") + 1)));
 		metaDatavalues.add(7, data.substring(0, data.indexOf("@")));
 		metaDatavalues.add(8, data.substring(data.indexOf("@") + 1, data.indexOf("@@")).replaceAll(regex, ""));
 		metaDatavalues.add(9, "");
 		metaDatavalues.add(10, (data.substring(data.indexOf("@**") + 1, data.indexOf("**", data.indexOf("**") + 1))));
+		metaDatavalues.add(11, "");
 		return metaDatavalues;
 	}
-
 	public String getDate(String secondRow) {
 		Pattern pattern = Pattern.compile("\\d{2}/\\d{2}/\\d{2}");
 		Matcher matcher = pattern.matcher(secondRow);
