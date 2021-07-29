@@ -28,7 +28,6 @@ import com.PDFToExcel.main.PDFToExcelProcess;
 
 public class WriteExcel {
 	private static Logger log = LogManager.getLogger(WriteExcel.class);
-
 	public int writeExcel(String excelFilePath, String excelName, List<List<List<String>>> list, String templateMA,
 			String templateMB, List<String> metaDataList)
 			throws FileNotFoundException, IOException, InvalidFormatException {
@@ -42,7 +41,6 @@ public class WriteExcel {
 			CloneTemplates.createTemplate(templateMB, excelFilePath + excelName + ".xlsx");
 			log.info("Template with name " + excelName + " is created");
 		}
-
 		FileInputStream inputStream = new FileInputStream(new File(excelFilePath + excelName + ".xlsx"));
 		Workbook workbook = WorkbookFactory.create(inputStream);
 
@@ -78,6 +76,7 @@ public class WriteExcel {
 							if (sheet.getRow(0).getCell(columnCount).toString().equals("R")
 									&& (columnData.toString().isEmpty() || columnData.toString().equalsIgnoreCase(" ")
 											|| columnData.toString() == null)) {
+								//Highlight cells
 								setCellStyle(workbook, cell);
 							}
 						}
@@ -115,14 +114,13 @@ public class WriteExcel {
 		log.info("Total records in " + excelName + " are " + totalRecords);
 		return totalRecords;
 	}
-
 	public void updateMetaDataSheet(Workbook workbook, List<String> metaDataList) {
 		Sheet sheet = workbook.getSheetAt(0);
 		Row row = sheet.createRow(2);
 		int columnCount = 0;
 		writeData(workbook, metaDataList, columnCount, row, sheet);
 	}
-
+	
 	public void writeData(Workbook workbook, List<String> data, int columnCount, Row row, Sheet sheet) {
 		for (Object cellData : data) {
 			Cell cell = row.createCell(columnCount++);
@@ -135,7 +133,7 @@ public class WriteExcel {
 			workbook.setActiveSheet(0);
 		}
 	}
-
+	
 	public void setCellStyle(Workbook workbook, Cell cell) {
 		CellStyle cellStyle = workbook.createCellStyle();
 		cellStyle.setFillForegroundColor(IndexedColors.RED.getIndex());

@@ -17,16 +17,21 @@ public class ReadPDFData extends PDFTextStripper {
 	public ReadPDFData() throws IOException {
 		
 	}
-
 	static PDDocument document = null;
 	static List<String> rows = new ArrayList<String>();
-	public static List<String> readPDF(String fileName) throws IOException {
+	public static List<String> readPDF(String folderName) throws IOException {
+		File file =new File(folderName);
+		File[] files = file.listFiles();
+		for (File filenew:files) {
 		try {
-			document = PDDocument.load(new File(fileName));
+			document = PDDocument.load((filenew));
+			System.out.println(filenew);
 			PDFTextStripper stripper = new ReadPDFData();
 			stripper.setSortByPosition(true);
 			stripper.setStartPage(0);
+			
 			stripper.setEndPage(document.getNumberOfPages());
+			stripper.setPageStart("NEW");
 			Writer dummy = new OutputStreamWriter(new ByteArrayOutputStream());
 			stripper.writeText(document, dummy);
 		} catch (Exception e) {
@@ -36,11 +41,9 @@ public class ReadPDFData extends PDFTextStripper {
 		finally {
 			if (document != null) {
 				document.close();
-			}}
+			}}}
 			return rows;
 	}
-	
-
 	@Override
 	protected void writeString(String str, List<TextPosition> textPositions) throws IOException {
 		rows.add(str);

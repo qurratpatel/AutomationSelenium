@@ -8,7 +8,8 @@ public class PDFToExcelRunner {
 
 	private static Logger log = LogManager.getLogger(PDFToExcelRunner.class);
 
-	static String pdfFileName = System.getProperty("user.dir") + "/data/Input.pdf";
+//	static String pdfFileName = System.getProperty("user.dir") + "/data/Input.pdf";
+	static String pdfFiles = System.getProperty("user.dir") + "/data/";
 
 	static String excelFilePath = System.getProperty("user.dir") + "/src/main/resources/documents/";
 	static String templatesPath = System.getProperty("user.dir") + "/src/main/resources/templates/";
@@ -18,6 +19,6 @@ public class PDFToExcelRunner {
 	public static void main(String[] args) {
 		log.info("Inside PDF to excel runner");
 		PDFToExcelProcess pdfToExcelProcess = new PDFToExcelProcess();
-		pdfToExcelProcess.pdfToExcel(excelFilePath, pdfFileName, templateMA, templateMB);
+		pdfToExcelProcess.pdfToExcel(excelFilePath, pdfFiles, templateMA, templateMB);
 	}
 }

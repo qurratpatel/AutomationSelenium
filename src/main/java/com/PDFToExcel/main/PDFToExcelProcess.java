@@ -18,7 +18,7 @@ import com.PDFToExcel.utility.WriteExcel;
 public class PDFToExcelProcess {
 	private static Logger log = LogManager.getLogger(PDFToExcelProcess.class);
 	List<String> metaDatavalues = new ArrayList<>();
-	List<String> columnsFromRow = new ArrayList<>();
+	List<String> listOfValuesFromRow = new ArrayList<>();
 	Map<String, List<List<String>>> eventTypeMap = new LinkedHashMap<>();
 	Map<String, List<List<List<String>>>> groupTypeMap = new LinkedHashMap<>();
 	WriteExcel writeToExcel = new WriteExcel();
@@ -32,13 +32,13 @@ public class PDFToExcelProcess {
 	int numOfRecordsInWb;
 	int totalNumOfRecordsInWbs;
 	String totalRecordsInPDF;
+
 	public void pdfToExcel(String excelFilePath, String pdfFileName, String templateMA, String templateMB) {
 		List<String> rows = new ArrayList<>();
 		List<String> ls = new ArrayList<>();
 		try {
 			// Reads the data from PDF
 			rows = ReadPDFData.readPDF(pdfFileName);
-
 			// extract RLIDType, SubType and Date from row 1 and 2
 			String firstRow = rows.get(0);
 			String secondRow = rows.get(1);
@@ -72,7 +72,7 @@ public class PDFToExcelProcess {
 				if (rows.get(i).contains("NEW") || rows.get(i).contains("COR") || rows.get(i).contains("DEL")) {
 					multipleLines = null;
 					ls.add(rows.get(i));
-				} else if (!(rows.get(i).contains("Report") || rows.get(i).contains(actualDateFormat)
+				} else if (!(rows.get(i).contains("META") ||rows.get(i).contains("Report") || rows.get(i).contains(actualDateFormat)
 						|| rows.get(i) == null || rows.get(i).toLowerCase().contains("end") || rows.get(i).equals(" ")
 						|| rows.get(i).isEmpty())) {
 					if (multipleLines != null) {
@@ -90,22 +90,26 @@ public class PDFToExcelProcess {
 				}
 			}
 			rows = ls;
+			for (String row:rows) {
+				System.out.println(row);
+				
+			}
 			for (String row : rows) {
 				// splits the row into columns
-				columnsFromRow = Arrays.asList(row.split("\\s*,"));
-				int rowsize = columnsFromRow.size();
+				listOfValuesFromRow = Arrays.asList(row.split("\\s*,"));
+				int rowsize = listOfValuesFromRow.size();
 				if (rowsize > 1 && !row.contains("META") && !row.contains("Report")) {
 					// Sorting data based on eventype
-					String eventTypeKey = columnsFromRow.get(3);
+					String eventTypeKey = listOfValuesFromRow.get(3);
 					if (!eventTypeMap.containsKey(eventTypeKey)) {
 						List<List<String>> list = new ArrayList<>();
-						list.add(columnsFromRow);
+						list.add(listOfValuesFromRow);
 						// added in key value pair- key: eventTypeKey, value:
 						// columns,
 						// eventypeKey will be our sheet
 						eventTypeMap.put(eventTypeKey, list);
 					} else {
-						eventTypeMap.get(eventTypeKey).add(columnsFromRow);
+						eventTypeMap.get(eventTypeKey).add(listOfValuesFromRow);
 					}
 				}
 			}
@@ -132,11 +136,12 @@ public class PDFToExcelProcess {
 			e.printStackTrace();
 		}
 	}
+
 	public List<String> getMetaDataValues(String metaDataRow) {
 		String regex = "^0+(?!$)";
 		List<String> metaDataArraysList = new ArrayList<>();
 		metaDataArraysList = Arrays.asList(metaDataRow.split("\\s*,"));
-		List<String> metaDatavalues = new ArrayList<>(metaDataArraysList); 
+		List<String> metaDatavalues = new ArrayList<>(metaDataArraysList);
 		String data = metaDatavalues.get(6);
 		metaDatavalues.set(6, data.substring(0, data.indexOf("**", data.indexOf("**") + 1)));
 		metaDatavalues.add(7, data.substring(0, data.indexOf("@")));
@@ -146,6 +151,7 @@ public class PDFToExcelProcess {
 		metaDatavalues.add(11, "");
 		return metaDatavalues;
 	}
+
 	public String getDate(String secondRow) {
 		Pattern pattern = Pattern.compile("\\d{2}/\\d{2}/\\d{2}");
 		Matcher matcher = pattern.matcher(secondRow);
